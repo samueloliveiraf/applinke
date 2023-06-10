@@ -2,24 +2,30 @@
   <q-btn label="Configurar campanha" @click="showDialog = true" />
 
   <q-dialog v-model="showDialog" full-width>
-    <q-card style="width: 70vw !important">
-      <q-card-section class="q-card-section">
+    <q-card style="width: 70vw !important; border-radius: 1.2rem;">
+      <q-card-section class="q-card-section flex full-height">
         <div class="text-h6">Criar campanha do linkedin</div>
       </q-card-section>
-      <q-card-section>
-        <q-tabs v-model="currentStep" align="justify">
-          <q-tab name="1" label="Passo 1" />
-          <q-tab name="2" label="Passo 2" />
-          <q-tab name="3" label="Passo 3" />
-          <q-tab name="4" label="Passo 4" />
-          <q-tab name="5" label="Passo 5" />
+      <q-separator  />
+      <q-card-section class="campaign-setup-grid flex full-height">
+        <q-tabs v-model="currentStep" vertical dense style="width: 11vw">
+          <q-tab class="q-tab-style no-uppercase" :class="{'active-tab': currentStep === '1'}" name="1" label="Configurar jornada"/>
+          <q-separator />
+          <q-tab class="q-tab-style no-uppercase" :class="{'active-tab': currentStep === '2'}" name="2" label="Definir público alvo" />
+          <q-separator />
+          <q-tab class="q-tab-style no-uppercase" :class="{'active-tab': currentStep === '3'}" name="3" label="Selecionar lista" />
+          <q-separator />
+          <q-tab class="q-tab-style no-uppercase" :class="{'active-tab': currentStep === '4'}" name="4" label="Configurar peças" />
+          <q-separator />
+          <q-tab class="q-tab-style no-uppercase" :class="{'active-tab': currentStep === '5'}" name="5" label="Definir linkedin" />
         </q-tabs>
+        <q-separator vertical />
 
         <q-tab-panels v-model="currentStep" animated>
           <!-- Step 1 -->
           <q-tab-panel name="1">
             <q-input v-model="nameCampaign" label="Nome da campanha" />
-            <div class="q-mb-md">Dias permitidos para envio</div>
+            <div class="q-mb-md" style="margin-top: 0.8rem;">Dias permitidos para envio</div>
             <q-checkbox v-model="days['Segunda-feira']" label="Seg" />
             <q-checkbox v-model="days['Terça-feira']" label="Ter" />
             <q-checkbox v-model="days['Quarta-feira']" label="Qua" />
@@ -36,7 +42,6 @@
             <div class="q-mt-md">Tempo mínimo antes de reenviar da mensagem ao mesmo contato</div>
             <q-select v-model="resendInterval" :options="[2, 3, 4, 5]" suffix="dias" />
 
-            <q-btn class="q-mt-md" @click="currentStep = '2'">Próximo</q-btn>
           </q-tab-panel>
 
           <!-- Step 2 -->
@@ -56,8 +61,6 @@
             <q-radio v-model="jobLevel" val="Baixo" label="Baixo" />
             <q-radio v-model="jobLevel" val="Não classificado" label="Não classificado" />
 
-            <q-btn @click="currentStep = '1'">Voltar</q-btn>
-            <q-btn @click="currentStep = '3'">Próximo</q-btn>
           </q-tab-panel>
 
           <!-- Step 3 -->
@@ -68,8 +71,6 @@
 
             <q-select v-model="selectedLists" multiple label="Selecione listas" :options="filteredLists"
               option-value="name" option-label="label" use-input use-chips />
-            <q-btn @click="currentStep = '2'">Voltar</q-btn>
-            <q-btn @click="currentStep = '4'">Próximo</q-btn>
           </q-tab-panel>
 
           <!-- Step 4 -->
@@ -77,7 +78,7 @@
             <div class="q-mb-md">Personalize os textos de acordo com o seu negócio</div>
             <div class="q-mb-md">
               <div>Jornada principal</div>
-              <q-select v-model="mainJourneyCount" :options="[1, 2, 3, 4, 5]" label="Escolha a quantidade de textos"
+              <q-select v-model="mainJourneyCount" :options="[5]" label="São 5 textos"
                 @input="primaryCopies.length = mainJourneyCount" />
               <q-input v-for="(text, index) in primaryCopies" :key="index" v-model="primaryCopies[index].copy"
                 label="Texto" />
@@ -85,13 +86,11 @@
 
             <div class="q-mb-md">
               <div>Jornada alternativa</div>
-              <q-select v-model="altJourneyCount" :options="[1, 2, 3]" label="Escolha a quantidade de textos"
+              <q-select v-model="altJourneyCount" :options="[3]" label="São 3 textos"
                 @input="secondaryCopies.length = altJourneyCount" />
               <q-input v-for="(text, index) in secondaryCopies" :key="index" v-model="secondaryCopies[index].copy"
                 label="Texto" />
             </div>
-            <q-btn @click="currentStep = '3'">Voltar</q-btn>
-            <q-btn @click="currentStep = '5'">Próximo</q-btn>
           </q-tab-panel>
 
           <!-- Step 5 -->
@@ -104,9 +103,12 @@
                 <q-icon name="visibility" class="cursor-pointer" @click="showPassword = !showPassword" />
               </template>
             </q-input>
-            <q-btn class="q-mt-md" @click="currentStep = '4'">Voltar</q-btn>
-            <q-btn class="q-mt-md" @click="submitForm">Concluir</q-btn>
           </q-tab-panel>
+          <div class="navigation-buttons">
+            <q-btn @click="prevStep">Voltar</q-btn>
+            <q-btn @click="nextStep">Próximo</q-btn>
+          </div>
+
         </q-tab-panels>
       </q-card-section>
     </q-card>
@@ -122,6 +124,20 @@ import axios from 'axios'
 
 export default {
   name: 'CampaignConf',
+  methods: {
+    nextStep() {
+      if (this.currentStep < 5) {
+        this.currentStep++;
+      } else {
+        this.submitForm(); // Submit form if we are at the last step
+      }
+    },
+    prevStep() {
+      if (this.currentStep > 1) {
+        this.currentStep--;
+      }
+    }
+  },
   setup() {
     const $q = useQuasar()
 
@@ -255,7 +271,46 @@ export default {
 </script>
 
 <style scoped>
+.campaign-setup-grid {
+  display: grid;
+  grid-template-columns: 1fr 2px auto;
+}
+
+@media (max-width: 600px) {
+  .campaign-setup-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 q-card-section:nth-of-type(2) {
   margin: 0;
+}
+.campaign-setup-grid {
+  display: grid;
+  grid-template-columns: 1fr 2px auto;
+  grid-template-rows: auto;
+}
+
+.campaign-setup-panels {
+  grid-row: 1;
+  grid-column: 3;
+}
+.navigation-buttons {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding: 12px;
+}
+.q-tab-panel {
+  width: 111vh;
+  height: 70vh;
+}
+.q-tab-style {
+  padding: 1.2rem;
+  text-transform: none !important;
+  font-size: larger !important;
+}
+.active-tab {
+  color: #14aaff !important;
 }
 </style>

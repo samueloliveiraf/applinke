@@ -5,7 +5,7 @@
         <tr>
           <th>Campanha nome</th>
           <th>Criada</th>
-          <th>Is Active</th>
+          <th>Ativa</th>
         </tr>
       </thead>
       <tbody>
