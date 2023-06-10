@@ -7,8 +7,17 @@
         <div class="text-h6">Criar campanha do linkedin</div>
       </q-card-section>
       <q-card-section>
-        <q-stepper v-model="currentStep" vertical>
-          <q-step name="1" label="Passo 1">
+        <q-tabs v-model="currentStep" align="justify">
+          <q-tab name="1" label="Passo 1" />
+          <q-tab name="2" label="Passo 2" />
+          <q-tab name="3" label="Passo 3" />
+          <q-tab name="4" label="Passo 4" />
+          <q-tab name="5" label="Passo 5" />
+        </q-tabs>
+
+        <q-tab-panels v-model="currentStep" animated>
+          <!-- Step 1 -->
+          <q-tab-panel name="1">
             <q-input v-model="nameCampaign" label="Nome da campanha" />
             <div class="q-mb-md">Dias permitidos para envio</div>
             <q-checkbox v-model="days['Segunda-feira']" label="Seg" />
@@ -28,9 +37,10 @@
             <q-select v-model="resendInterval" :options="[2, 3, 4, 5]" suffix="dias" />
 
             <q-btn class="q-mt-md" @click="currentStep = '2'">Próximo</q-btn>
-          </q-step>
+          </q-tab-panel>
 
-          <q-step name="2" label="Passo 2">
+          <!-- Step 2 -->
+          <q-tab-panel name="2">
             <div class="q-mb-md">Com qual departamento você deseja falar?</div>
             <q-select v-model="primaryDept" label="Primário"
               :options="['Qualquer um', 'Financeiro', 'Operacional', 'Administrativo', 'TI', 'Marketing', 'Gestão', 'Comercial', 'Indústrial', 'Jurídico', 'Proprietários', 'Recursos Humanos', 'Suprimentos']" />
@@ -48,20 +58,22 @@
 
             <q-btn @click="currentStep = '1'">Voltar</q-btn>
             <q-btn @click="currentStep = '3'">Próximo</q-btn>
-          </q-step>
+          </q-tab-panel>
 
-          <q-step name="3" label="Passo 3">
+          <!-- Step 3 -->
+          <q-tab-panel name="3">
             <div class="q-mb-md">Selecione até três listas para o envio dos e-mails das campanhas ({{ selectedLists.length
             }} selecionado)</div>
             <q-input v-model="searchTerm" label="Buscar pelo nome da lista" />
 
             <q-select v-model="selectedLists" multiple label="Selecione listas" :options="filteredLists"
               option-value="name" option-label="label" use-input use-chips />
-
             <q-btn @click="currentStep = '2'">Voltar</q-btn>
             <q-btn @click="currentStep = '4'">Próximo</q-btn>
-          </q-step>
-          <q-step name="4" label="Passo 4">
+          </q-tab-panel>
+
+          <!-- Step 4 -->
+          <q-tab-panel name="4">
             <div class="q-mb-md">Personalize os textos de acordo com o seu negócio</div>
             <div class="q-mb-md">
               <div>Jornada principal</div>
@@ -78,11 +90,12 @@
               <q-input v-for="(text, index) in secondaryCopies" :key="index" v-model="secondaryCopies[index].copy"
                 label="Texto" />
             </div>
-
             <q-btn @click="currentStep = '3'">Voltar</q-btn>
             <q-btn @click="currentStep = '5'">Próximo</q-btn>
-          </q-step>
-          <q-step name="5" label="Passo 5">
+          </q-tab-panel>
+
+          <!-- Step 5 -->
+          <q-tab-panel name="5">
             <div class="q-mb-md">Defina suas credenciais do LinkedIn</div>
 
             <q-input v-model="linkedInEmail" label="E-mail do LinkedIn" />
@@ -91,11 +104,10 @@
                 <q-icon name="visibility" class="cursor-pointer" @click="showPassword = !showPassword" />
               </template>
             </q-input>
-
             <q-btn class="q-mt-md" @click="currentStep = '4'">Voltar</q-btn>
             <q-btn class="q-mt-md" @click="submitForm">Concluir</q-btn>
-          </q-step>
-        </q-stepper>
+          </q-tab-panel>
+        </q-tab-panels>
       </q-card-section>
     </q-card>
   </q-dialog>
@@ -103,7 +115,7 @@
 
 <script>
 /* eslint-disable no-trailing-spaces, space-before-function-paren, eol-last, semi, vue/no-unused-components */
-import { ref, computed, getCurrentInstance } from 'vue'
+import { ref, computed } from 'vue'
 
 import { useQuasar } from 'quasar'
 import axios from 'axios'
@@ -114,7 +126,7 @@ export default {
     const $q = useQuasar()
 
     const nameCampaign = ref('')
-    const infosetId = ref('asldaskdsdfsd[fdasaskd')
+    const infosetId = ref('as]ASKDASKD')
     const showDialog = ref(false)
     const currentStep = ref('1')
     const days = ref({
@@ -172,8 +184,6 @@ export default {
     const linkedInPassword = ref('')
     const showPassword = ref(false)
 
-    const ctx = getCurrentInstance();
-
     async function submitForm() {
       try {
         const response = await axios.post('http://localhost:8000/campaigns/create/', {
@@ -184,7 +194,8 @@ export default {
           primary_copies: primaryCopies.value,
           sending_days: sendingDays.value,
           secondary_copies: secondaryCopies.value,
-          infoset_id: infosetId.value,
+          infoset_id: searchTerm.value,
+          sending_interval: resendInterval.value,
           sending_time: {
             start: sendTime.value.start,
             end: sendTime.value.end
@@ -197,7 +208,7 @@ export default {
             message: 'Sucesso ao cadastrar campanha.',
             type: 'positive'
           })
-          ctx.emit('userCreated', response.data.user);
+          window.location.href = '/campaign/user/' + response.data.user
         }
       } catch (error) {
         if (error.response) {
